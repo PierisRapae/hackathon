@@ -17,62 +17,30 @@
 package com.google.ar.core.codelab.cloudanchor;
 
 import android.content.Context;
-import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.support.annotation.GuardedBy;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.ar.core.Anchor;
-import com.google.ar.core.ArCoreApk;
-import com.google.ar.core.Camera;
-import com.google.ar.core.Config;
 import com.google.ar.core.DemoUtils;
 import com.google.ar.core.Frame;
-import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
-import com.google.ar.core.Point;
-import com.google.ar.core.Point.OrientationMode;
-import com.google.ar.core.PointCloud;
 import com.google.ar.core.Session;
-import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
-import com.google.ar.core.examples.java.common.helpers.CameraPermissionHelper;
-import com.google.ar.core.examples.java.common.helpers.DisplayRotationHelper;
-import com.google.ar.core.examples.java.common.helpers.FullScreenHelper;
-import com.google.ar.core.examples.java.common.helpers.SnackbarHelper;
-import com.google.ar.core.examples.java.common.rendering.BackgroundRenderer;
-import com.google.ar.core.examples.java.common.rendering.ObjectRenderer;
-import com.google.ar.core.examples.java.common.rendering.ObjectRenderer.BlendMode;
-import com.google.ar.core.examples.java.common.rendering.PlaneRenderer;
-import com.google.ar.core.examples.java.common.rendering.PointCloudRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
-import com.google.ar.core.exceptions.UnavailableApkTooOldException;
-import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableException;
-import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 
 import uk.co.appoly.arcorelocation.LocationMarker;
 import uk.co.appoly.arcorelocation.LocationScene;
@@ -100,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
     // Our ARCore-Location scene
     private LocationScene locationScene;
+
+    private volatile double testLatitude = 1.30006;
+    private volatile double testLongitude = 103.78837;
 
 
     @Override
@@ -166,8 +137,8 @@ public class MainActivity extends AppCompatActivity {
                                 // Now lets create our location markers.
                                 // First, a layout
                                 LocationMarker layoutLocationMarker = new LocationMarker(
-                                        103.78837,
-                                        1.30006,
+                                        testLongitude,
+                                        testLatitude,
                                         getExampleView()
                                 );
 
@@ -217,6 +188,21 @@ public class MainActivity extends AppCompatActivity {
 
         // Lastly request CAMERA & fine location permission which is required by ARCore-Location.
         ARLocationPermissionHelper.requestPermission(this);
+
+
+        findViewById(R.id.update_coordinate).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AddCoordinatesDialogFragment dialog = new AddCoordinatesDialogFragment();
+                dialog.setOkListener(MainActivity.this::onResolveOkPressed);
+                dialog.show(getSupportFragmentManager(), "Resolve");
+            }
+        });
+    }
+
+    private void onResolveOkPressed(double latitude, double longitude) {
+        this.testLatitude = latitude;
+        this.testLongitude = longitude;
     }
 
     /**

@@ -16,7 +16,7 @@
 -->
 <resources>
   <!-- Strings in the main activity -->
-  <string name="app_name">Cloud Anchor Codelab</string>
+  <string name="app_name">Sea AR Map</string>
 
   <!-- Strings used in Snackbar messages -->
   <string name="snackbar_arcore_unavailable">Please install ARCore.</string>
