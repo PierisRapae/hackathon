@@ -18,7 +18,7 @@
     <!-- Strings in the main activity -->
     <string name="app_name">Sea AR Map</string>
 
-    <string name="plane_finding">Searching for surfaces&#8230;</string>
+    <string name="plane_finding">Loading&#8230;</string>
 
     <!-- Strings used in Snackbar messages -->
     <string name="snackbar_arcore_unavailable">Please install ARCore.</string>

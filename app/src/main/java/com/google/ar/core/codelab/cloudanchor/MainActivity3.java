@@ -242,6 +242,7 @@ public class MainActivity3 extends AppCompatActivity {
                             }
 
                             if (locationScene != null) {
+//                                locationScene.setAnchorRefreshInterval(1000 * 60);
                                 locationScene.processFrame(frame);
                             }
 

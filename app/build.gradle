@@ -2,6 +2,10 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
+    signingConfigs {
+        config {
+        }
+    }
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.google.ar.core.codelab.cloudanchor"
@@ -39,30 +43,21 @@ android {
 dependencies {
     // ARCore library
     implementation 'com.google.ar:core:1.4.0'
-//    implementation 'com.github.appoly:ARCore-Location:1.1.1'
-    implementation project(":arcorelocation")
-
+    //    implementation 'com.github.appoly:ARCore-Location:1.1.1'
+    implementation project(':arcorelocation')
     // sceneform
-    implementation "com.google.ar.sceneform:core:1.4.0"
-    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.4.0"
-
+    implementation 'com.google.ar.sceneform:core:1.4.0'
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.4.0'
     implementation 'com.google.firebase:firebase-database:16.0.1'
-
     // Obj - a simple Wavefront OBJ file loader
     // https://github.com/javagl/Obj
     implementation 'de.javagl:obj:0.2.1'
-
     implementation 'com.google.ar.sceneform:core:1.4.0'
     implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.4.0'
-
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
-
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
-
-
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.15'
-
     implementation 'android.arch.lifecycle:extensions:1.1.1'
 }
 
