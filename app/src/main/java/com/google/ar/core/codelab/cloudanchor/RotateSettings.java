@@ -17,8 +17,8 @@ package com.google.ar.core.codelab.cloudanchor;
 
 /** Planet rotation and speed settings */
 public class RotateSettings {
-  private float orbitSpeedMultiplier = 1.0f;
-  private float rotationSpeedMultiplier = 1.0f;
+  private float orbitSpeedMultiplier = 5.0f;
+  private float rotationSpeedMultiplier = 5.0f;
 
   public void setOrbitSpeedMultiplier(float orbitSpeedMultiplier) {
     this.orbitSpeedMultiplier = orbitSpeedMultiplier;

@@ -81,13 +81,14 @@ public class Planet extends Node implements Node.OnTapListener {
             infoCard.setLocalPosition(new Vector3(0.0f, planetScale * INFO_CARD_Y_POS_COEFF, 0.0f));
 
             ViewRenderable.builder()
-                    .setView(context, R.layout.planet_card_view)
+                    .setView(context, R.layout.nametag_render)
                     .build()
                     .thenAccept(
                             (renderable) -> {
                                 infoCard.setRenderable(renderable);
-                                TextView textView = (TextView) renderable.getView();
-                                textView.setText(planetName);
+                                infoCard.setLocalScale(new Vector3(0.5f,0.5f,0.5f));
+//                                TextView textView = (TextView) renderable.getView();
+//                                textView.setText(planetName);
                             })
                     .exceptionally(
                             (throwable) -> {

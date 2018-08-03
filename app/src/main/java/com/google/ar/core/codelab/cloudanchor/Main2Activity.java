@@ -292,12 +292,12 @@ public class Main2Activity extends AppCompatActivity {
         Node sunVisual = new Node();
         sunVisual.setParent(sun);
         sunVisual.setRenderable(sunRenderable);
-        sunVisual.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
+        sunVisual.setLocalScale(new Vector3(0.85f, 0.85f, 0.85f));
         // avatar control panel
         Node solarControls = new Node();
         solarControls.setParent(sun);
         solarControls.setRenderable(solarControlsRenderable);
-        solarControls.setLocalPosition(new Vector3(0.0f, 0.25f, 0.0f));
+        solarControls.setLocalPosition(new Vector3(0.0f, 0.55f, -0.10f));
 
         // control panel
         View solarControlsView = solarControlsRenderable.getView();
