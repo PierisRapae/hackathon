@@ -69,7 +69,10 @@
             android:name="com.google.android.ar.API_KEY"
             android:value="AIzaSyA2gux5o1ViTMObf9eUvRSYquABEapDqh8" />
 
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".MainActivity" />
+        <activity
+            android:name=".SearchByNameActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 
 </manifest>
