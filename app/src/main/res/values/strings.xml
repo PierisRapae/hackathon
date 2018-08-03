@@ -33,4 +33,6 @@
 
   <!-- Strings used by UI components -->
   <string name="clear_button_string">Clear</string>
+
+  <string name="plane_finding">Searching for surfaces&#8230;</string>
 </resources>

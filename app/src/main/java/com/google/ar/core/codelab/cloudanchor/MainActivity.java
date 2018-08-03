@@ -16,22 +16,29 @@
 
 package com.google.ar.core.codelab.cloudanchor;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.annotation.GuardedBy;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
+import com.google.ar.core.DemoUtils;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
@@ -53,270 +60,274 @@ import com.google.ar.core.examples.java.common.rendering.PointCloudRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
+import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
+import com.google.ar.sceneform.ArSceneView;
+import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.rendering.ViewRenderable;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import uk.co.appoly.arcorelocation.LocationMarker;
+import uk.co.appoly.arcorelocation.LocationScene;
+import uk.co.appoly.arcorelocation.rendering.LocationNode;
+import uk.co.appoly.arcorelocation.rendering.LocationNodeRender;
+import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
 
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3d model of the Android robot.
  */
-public class MainActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
-
-    // Rendering. The Renderers are created here, and initialized when the GL surface is created.
-    private GLSurfaceView surfaceView;
-    private final BackgroundRenderer backgroundRenderer = new BackgroundRenderer();
-    private final ObjectRenderer virtualObject = new ObjectRenderer();
-    private final ObjectRenderer virtualObjectShadow = new ObjectRenderer();
-    private final PlaneRenderer planeRenderer = new PlaneRenderer();
-    private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
-
-    // Matrices pre-allocated here to reduce the number of allocations on every frame draw.
-    private final float[] anchorMatrix = new float[16];
-    private final float[] projectionMatrix = new float[16];
-    private final float[] viewMatrix = new float[16];
-    private final float[] colorCorrectionRgba = new float[4];
-
-    // Lock needed for synchronization.
-    private final Object singleTapAnchorLock = new Object();
-
-    // Tap handling and UI. This app allows you to place at most one anchor.
-    @GuardedBy("singleTapAnchorLock")
-    private MotionEvent queuedSingleTap;
-
-    private final SnackbarHelper snackbarHelper = new SnackbarHelper();
-    private GestureDetector gestureDetector;
-    private DisplayRotationHelper displayRotationHelper;
-
-    // ARCore components
-    private Session session;
     private boolean installRequested;
+    private boolean hasFinishedLoading = false;
 
-    private StorageManager storageManager;
+    private Snackbar loadingMessageSnackbar = null;
 
-    private enum AppAnchorState {
-        NONE,
-        HOSTING,
-        HOSTED,
-        RESOLVING,
-        RESOLVED
-    }
+    private ArSceneView arSceneView;
 
-    @GuardedBy("singleTapAnchorLock")
-    private AppAnchorState appAnchorState = AppAnchorState.NONE;
+    // Renderables for this example
+    private ModelRenderable andyRenderable;
+    private ViewRenderable exampleLayoutRenderable;
 
-    @Nullable
-    @GuardedBy("singleTapAnchorLock")
-    private Anchor anchor;
-
-    /**
-     * Handles a single tap during a {@link #onDrawFrame(GL10)} call.
-     */
-    private void handleTapOnDraw(TrackingState currentTrackingState, Frame currentFrame) {
-        synchronized (singleTapAnchorLock) {
-            if (anchor == null
-                    && queuedSingleTap != null
-                    && currentTrackingState == TrackingState.TRACKING
-                    && appAnchorState == AppAnchorState.NONE) {
-                for (HitResult hit : currentFrame.hitTest(queuedSingleTap)) {
-                    if (shouldCreateAnchorWithHit(hit)) {
-                        Anchor newAnchor = session.hostCloudAnchor(hit.createAnchor()); // Change this line.
-                        setNewAnchor(newAnchor);
-
-                        // Add some UI to show you that the anchor is being hosted.
-                        appAnchorState = AppAnchorState.HOSTING; // Add this line.
-                        snackbarHelper.showMessage(this, "Now hosting anchor..."); // Add this line.
-                        break;
-                    }
-                }
-            }
-            queuedSingleTap = null;
-        }
-    }
-
-    /**
-     * Returns {@code true} if and only if {@code hit} can be used to create an anchor.
-     *
-     * <p>Checks if a plane was hit and if the hit was inside the plane polygon, or if an oriented
-     * point was hit. We only want to create an anchor if the hit satisfies these conditions.
-     */
-    private static boolean shouldCreateAnchorWithHit(HitResult hit) {
-        Trackable trackable = hit.getTrackable();
-        if (trackable instanceof Plane) {
-            // Check if any plane was hit, and if it was hit inside the plane polygon
-            return ((Plane) trackable).isPoseInPolygon(hit.getHitPose());
-        } else if (trackable instanceof Point) {
-            // Check if an oriented point was hit.
-            return ((Point) trackable).getOrientationMode() == OrientationMode.ESTIMATED_SURFACE_NORMAL;
-        }
-        return false;
-    }
-
-    private void onResolveOkPressed(String dialogValue) {
-        int shortCode = Integer.parseInt(dialogValue);
-        storageManager.getCloudAnchorID(
-                shortCode,
-                (cloudAnchorId) -> {
-                    synchronized (singleTapAnchorLock) {
-                        Anchor resolvedAnchor = session.resolveCloudAnchor(cloudAnchorId);
-                        setNewAnchor(resolvedAnchor);
-                        snackbarHelper.showMessage(this, "Now resolving anchor...");
-                        appAnchorState = AppAnchorState.RESOLVING;
-                    }
-                });
-    }
+    // Our ARCore-Location scene
+    private LocationScene locationScene;
 
 
     @Override
+    @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
+    // CompletableFuture requires api level 24
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        surfaceView = findViewById(R.id.surfaceview);
-        displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
-        storageManager = new StorageManager(this);
+        arSceneView = findViewById(R.id.ar_scene_view);
 
-        // Set up tap listener.
-        gestureDetector =
-                new GestureDetector(
-                        this,
-                        new GestureDetector.SimpleOnGestureListener() {
-                            @Override
-                            public boolean onSingleTapUp(MotionEvent e) {
-                                synchronized (singleTapAnchorLock) {
-                                    queuedSingleTap = e;
-                                }
-                                return true;
+        // Build a renderable from a 2D View.
+        CompletableFuture<ViewRenderable> exampleLayout =
+                ViewRenderable.builder()
+                        .setView(this, R.layout.example_layout)
+                        .build();
+
+        // When you build a Renderable, Sceneform loads its resources in the background while returning
+        // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
+        CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
+                .setSource(this, R.raw.andy)
+                .build();
+
+
+        CompletableFuture.allOf(
+                exampleLayout,
+                andy)
+                .handle(
+                        (notUsed, throwable) -> {
+                            // When you build a Renderable, Sceneform loads its resources in the background while
+                            // returning a CompletableFuture. Call handle(), thenAccept(), or check isDone()
+                            // before calling get().
+
+                            if (throwable != null) {
+                                DemoUtils.displayError(this, "Unable to load renderables", throwable);
+                                return null;
                             }
 
-                            @Override
-                            public boolean onDown(MotionEvent e) {
-                                return true;
+                            try {
+                                exampleLayoutRenderable = exampleLayout.get();
+                                andyRenderable = andy.get();
+                                hasFinishedLoading = true;
+
+                            } catch (InterruptedException | ExecutionException ex) {
+                                DemoUtils.displayError(this, "Unable to load renderables", ex);
+                            }
+
+                            return null;
+                        });
+
+        // Set an update listener on the Scene that will hide the loading message once a Plane is detected.
+        arSceneView
+                .getScene()
+                .setOnUpdateListener(
+                        frameTime -> {
+                            if (!hasFinishedLoading) {
+                                return;
+                            }
+
+                            if (locationScene == null) {
+                                // If our locationScene object hasn't been setup yet, this is a good time to do it
+                                // We know that here, the AR components have been initiated.
+                                locationScene = new LocationScene(this, this, arSceneView);
+
+                                // Now lets create our location markers.
+                                // First, a layout
+                                LocationMarker layoutLocationMarker = new LocationMarker(
+                                        103.78837,
+                                        1.30006,
+                                        getExampleView()
+                                );
+
+                                // An example "onRender" event, called every frame
+                                // Updates the layout with the markers distance
+                                layoutLocationMarker.setRenderEvent(new LocationNodeRender() {
+                                    @Override
+                                    public void render(LocationNode node) {
+                                        View eView = exampleLayoutRenderable.getView();
+                                        TextView distanceTextView = eView.findViewById(R.id.textView2);
+                                        distanceTextView.setText(node.getDistance() + "M");
+                                    }
+                                });
+                                // Adding the marker
+                                locationScene.mLocationMarkers.add(layoutLocationMarker);
+
+                                // Adding a simple location marker of a 3D model
+                                locationScene.mLocationMarkers.add(
+                                        new LocationMarker(
+                                                103.78823,
+                                                1.2996,
+                                                getAndy()));
+                            }
+
+                            Frame frame = arSceneView.getArFrame();
+                            if (frame == null) {
+                                return;
+                            }
+
+                            if (frame.getCamera().getTrackingState() != TrackingState.TRACKING) {
+                                return;
+                            }
+
+                            if (locationScene != null) {
+                                locationScene.processFrame(frame);
+                            }
+
+                            if (loadingMessageSnackbar != null) {
+                                for (Plane plane : frame.getUpdatedTrackables(Plane.class)) {
+                                    if (plane.getTrackingState() == TrackingState.TRACKING) {
+                                        hideLoadingMessage();
+                                    }
+                                }
                             }
                         });
-        surfaceView.setOnTouchListener((unusedView, event) -> gestureDetector.onTouchEvent(event));
 
-        // Set up renderer.
-        surfaceView.setPreserveEGLContextOnPause(true);
-        surfaceView.setEGLContextClientVersion(2);
-        surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0); // Alpha used for plane blending.
-        surfaceView.setRenderer(this);
-        surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        installRequested = false;
 
-        // Initialize the "Clear" button. Clicking it will clear the current anchor, if it exists.
-        Button clearButton = findViewById(R.id.clear_button);
-        clearButton.setOnClickListener(
-                (unusedView) -> {
-                    synchronized (singleTapAnchorLock) {
-                        setNewAnchor(null);
-                    }
-                });
-
-        Button resolveButton = findViewById(R.id.resolve_button);
-        resolveButton.setOnClickListener(
-                (unusedView) -> {
-                    synchronized (singleTapAnchorLock) {
-                        if (anchor != null) {
-                            snackbarHelper.showMessageWithDismiss(this, "Please clear anchor first.");
-                            return;
-                        }
-                    }
-                    ResolveDialogFragment dialog = new ResolveDialogFragment();
-                    dialog.setOkListener(this::onResolveOkPressed);
-                    dialog.show(getSupportFragmentManager(), "Resolve");
-                });
+        // Lastly request CAMERA & fine location permission which is required by ARCore-Location.
+        ARLocationPermissionHelper.requestPermission(this);
     }
 
+    /**
+     * Example node of a layout
+     *
+     * @return
+     */
+    private Node getExampleView() {
+        Node base = new Node();
+        base.setRenderable(exampleLayoutRenderable);
+        Context c = this;
+        // Add  listeners etc here
+        View eView = exampleLayoutRenderable.getView();
+        eView.setOnTouchListener((v, event) -> {
+            Toast.makeText(
+                    c, "Location marker touched.", Toast.LENGTH_LONG)
+                    .show();
+            return false;
+        });
+
+        return base;
+    }
+
+    /***
+     * Example Node of a 3D model
+     *
+     * @return
+     */
+    private Node getAndy() {
+        Node base = new Node();
+        base.setRenderable(andyRenderable);
+        Context c = this;
+        base.setOnTapListener((v, event) -> {
+            Toast.makeText(
+                    c, "Andy touched.", Toast.LENGTH_LONG)
+                    .show();
+        });
+        return base;
+    }
+
+    /**
+     * Make sure we call locationScene.resume();
+     */
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (session == null) {
-            Exception exception = null;
-            int messageId = -1;
-            try {
-                switch (ArCoreApk.getInstance().requestInstall(this, !installRequested)) {
-                    case INSTALL_REQUESTED:
-                        installRequested = true;
-                        return;
-                    case INSTALLED:
-                        break;
-                }
-
-                // ARCore requires camera permissions to operate. If we did not yet obtain runtime
-                // permission on Android M and above, now is a good time to ask the user for it.
-                if (!CameraPermissionHelper.hasCameraPermission(this)) {
-                    CameraPermissionHelper.requestCameraPermission(this);
-                    return;
-                }
-                session = new Session(this);
-            } catch (UnavailableArcoreNotInstalledException e) {
-                messageId = R.string.snackbar_arcore_unavailable;
-                exception = e;
-            } catch (UnavailableApkTooOldException e) {
-                messageId = R.string.snackbar_arcore_too_old;
-                exception = e;
-            } catch (UnavailableSdkTooOldException e) {
-                messageId = R.string.snackbar_arcore_sdk_too_old;
-                exception = e;
-            } catch (Exception e) {
-                messageId = R.string.snackbar_arcore_exception;
-                exception = e;
-            }
-
-            if (exception != null) {
-                snackbarHelper.showError(this, getString(messageId));
-                Log.e(TAG, "Exception creating session", exception);
-                return;
-            }
-
-            // Create default config and check if supported.
-            Config config = new Config(session);
-            config.setCloudAnchorMode(Config.CloudAnchorMode.ENABLED);
-            session.configure(config);
+        if (locationScene != null) {
+            locationScene.resume();
         }
 
-        // Note that order matters - see the note in onPause(), the reverse applies here.
+        if (arSceneView.getSession() == null) {
+            // If the session wasn't created yet, don't resume rendering.
+            // This can happen if ARCore needs to be updated or permissions are not granted yet.
+            try {
+                Session session = DemoUtils.createArSession(this, installRequested);
+                if (session == null) {
+                    installRequested = ARLocationPermissionHelper.hasPermission(this);
+                    return;
+                } else {
+                    arSceneView.setupSession(session);
+                }
+            } catch (UnavailableException e) {
+                DemoUtils.handleSessionException(this, e);
+            }
+        }
+
         try {
-            session.resume();
-        } catch (CameraNotAvailableException e) {
-            // In some cases (such as another camera app launching) the camera may be given to
-            // a different app instead. Handle this properly by showing a message and recreate the
-            // session at the next iteration.
-            snackbarHelper.showError(this, getString(R.string.snackbar_camera_unavailable));
-            session = null;
+            arSceneView.resume();
+        } catch (CameraNotAvailableException ex) {
+            DemoUtils.displayError(this, "Unable to get camera", ex);
+            finish();
             return;
         }
-        surfaceView.onResume();
-        displayRotationHelper.onResume();
+
+        if (arSceneView.getSession() != null) {
+            showLoadingMessage();
+        }
     }
 
+    /**
+     * Make sure we call locationScene.pause();
+     */
     @Override
     public void onPause() {
         super.onPause();
-        if (session != null) {
-            // Note that the order matters - GLSurfaceView is paused first so that it does not try
-            // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
-            // still call session.update() and get a SessionPausedException.
-            displayRotationHelper.onPause();
-            surfaceView.onPause();
-            session.pause();
+
+        if (locationScene != null) {
+            locationScene.pause();
         }
+
+        arSceneView.pause();
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
-        if (!CameraPermissionHelper.hasCameraPermission(this)) {
-            Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
-                    .show();
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
+    public void onDestroy() {
+        super.onDestroy();
+        arSceneView.destroy();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] results) {
+        if (!ARLocationPermissionHelper.hasPermission(this)) {
+            if (!ARLocationPermissionHelper.shouldShowRequestPermissionRationale(this)) {
                 // Permission denied with checking "Do not ask again".
-                CameraPermissionHelper.launchPermissionSettings(this);
+                ARLocationPermissionHelper.launchPermissionSettings(this);
+            } else {
+                Toast.makeText(
+                        this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
+                        .show();
             }
             finish();
         }
@@ -325,164 +336,41 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
-    }
-
-    @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
-        // Prepare the rendering objects. This involves reading shaders, so may throw an IOException.
-        try {
-            // Create the texture and pass it to ARCore session to be filled during update().
-            backgroundRenderer.createOnGlThread(/*context=*/ this);
-            planeRenderer.createOnGlThread(/*context=*/ this, "models/trigrid.png");
-            pointCloudRenderer.createOnGlThread(/*context=*/ this);
-
-            virtualObject.createOnGlThread(/*context=*/ this, "models/andy.obj", "models/andy.png");
-            virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
-
-            virtualObjectShadow.createOnGlThread(
-                    /*context=*/ this, "models/andy_shadow.obj", "models/andy_shadow.png");
-            virtualObjectShadow.setBlendMode(BlendMode.Shadow);
-            virtualObjectShadow.setMaterialProperties(1.0f, 0.0f, 0.0f, 1.0f);
-        } catch (IOException ex) {
-            Log.e(TAG, "Failed to read an asset file", ex);
+        if (hasFocus) {
+            // Standard Android full-screen functionality.
+            getWindow()
+                    .getDecorView()
+                    .setSystemUiVisibility(
+                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
 
-    @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height) {
-        displayRotationHelper.onSurfaceChanged(width, height);
-        GLES20.glViewport(0, 0, width, height);
-    }
-
-    @Override
-    public void onDrawFrame(GL10 gl) {
-        // Clear screen to notify driver it should not load any pixels from previous frame.
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
-        if (session == null) {
+    private void showLoadingMessage() {
+        if (loadingMessageSnackbar != null && loadingMessageSnackbar.isShownOrQueued()) {
             return;
         }
-        // Notify ARCore session that the view size changed so that the perspective matrix and
-        // the video background can be properly adjusted.
-        displayRotationHelper.updateSessionIfNeeded(session);
 
-        try {
-            session.setCameraTextureName(backgroundRenderer.getTextureId());
-
-            // Obtain the current frame from ARSession. When the configuration is set to
-            // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
-            // camera framerate.
-            Frame frame = session.update();
-            Camera camera = frame.getCamera();
-            TrackingState cameraTrackingState = camera.getTrackingState();
-            checkUpdatedAnchor(); // Add this line.
-
-            // Handle taps.
-            handleTapOnDraw(cameraTrackingState, frame);
-
-            // Draw background.
-            backgroundRenderer.draw(frame);
-
-            // If not tracking, don't draw 3d objects.
-            if (cameraTrackingState == TrackingState.PAUSED) {
-                return;
-            }
-
-            // Get projection and camera matrices.
-            camera.getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f);
-            camera.getViewMatrix(viewMatrix, 0);
-
-            // Visualize tracked points.
-            PointCloud pointCloud = frame.acquirePointCloud();
-            pointCloudRenderer.update(pointCloud);
-            pointCloudRenderer.draw(viewMatrix, projectionMatrix);
-
-            // Application is responsible for releasing the point cloud resources after
-            // using it.
-            pointCloud.release();
-
-            // Visualize planes.
-            planeRenderer.drawPlanes(
-                    session.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projectionMatrix);
-
-            // Visualize anchor.
-            boolean shouldDrawAnchor = false;
-            synchronized (singleTapAnchorLock) {
-                if (anchor != null && anchor.getTrackingState() == TrackingState.TRACKING) {
-                    frame.getLightEstimate().getColorCorrection(colorCorrectionRgba, 0);
-
-                    // Get the current pose of an Anchor in world space. The Anchor pose is updated
-                    // during calls to session.update() as ARCore refines its estimate of the world.
-                    anchor.getPose().toMatrix(anchorMatrix, 0);
-                    shouldDrawAnchor = true;
-                }
-            }
-            if (shouldDrawAnchor) {
-                float scaleFactor = 1.0f;
-                frame.getLightEstimate().getColorCorrection(colorCorrectionRgba, 0);
-
-                // Update and draw the model and its shadow.
-                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor);
-                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor);
-                virtualObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba);
-                virtualObjectShadow.draw(viewMatrix, projectionMatrix, colorCorrectionRgba);
-            }
-        } catch (Throwable t) {
-            // Avoid crashing the application due to unhandled exceptions.
-            Log.e(TAG, "Exception on the OpenGL thread", t);
-        }
+        loadingMessageSnackbar =
+                Snackbar.make(
+                        MainActivity.this.findViewById(android.R.id.content),
+                        R.string.plane_finding,
+                        Snackbar.LENGTH_INDEFINITE);
+        loadingMessageSnackbar.getView().setBackgroundColor(0xbf323232);
+        loadingMessageSnackbar.show();
     }
 
-    private void checkUpdatedAnchor() {
-        synchronized (singleTapAnchorLock) {
-            if (appAnchorState != AppAnchorState.HOSTING && appAnchorState != AppAnchorState.RESOLVING) {
-                return;
-            }
-            Anchor.CloudAnchorState cloudState = anchor.getCloudAnchorState();
-            if (appAnchorState == AppAnchorState.HOSTING) {
-                if (cloudState.isError()) {
-                    snackbarHelper.showMessageWithDismiss(this, "Error hosting anchor: " + cloudState);
-                    appAnchorState = AppAnchorState.NONE;
-                } else if (cloudState == Anchor.CloudAnchorState.SUCCESS) {
-                    storageManager.nextShortCode(
-                            (shortCode) -> {
-                                if (shortCode == null) {
-                                    snackbarHelper.showMessageWithDismiss(this, "Could not obtain a short code.");
-                                    return;
-                                }
-                                synchronized (singleTapAnchorLock) {
-                                    storageManager.storeUsingShortCode(shortCode, anchor.getCloudAnchorId());
-                                    snackbarHelper.showMessageWithDismiss(
-                                            this, "Anchor hosted successfully! Cloud Short Code: " + shortCode);
-                                }
-                            });
-                    appAnchorState = AppAnchorState.HOSTED;
-                }
-            } else if (appAnchorState == AppAnchorState.RESOLVING) {
-                if (cloudState.isError()) {
-                    snackbarHelper.showMessageWithDismiss(this, "Error resolving anchor: " + cloudState);
-                    appAnchorState = AppAnchorState.NONE;
-                } else if (cloudState == Anchor.CloudAnchorState.SUCCESS) {
-                    snackbarHelper.showMessageWithDismiss(this, "Anchor resolved successfully!");
-                    appAnchorState = AppAnchorState.RESOLVED;
-                }
-            }
+    private void hideLoadingMessage() {
+        if (loadingMessageSnackbar == null) {
+            return;
         }
-    }
 
-    /**
-     * Sets the new anchor in the scene.
-     */
-    @GuardedBy("singleTapAnchorLock")
-    private void setNewAnchor(@Nullable Anchor newAnchor) {
-        if (anchor != null) {
-            anchor.detach();
-        }
-        anchor = newAnchor;
-        appAnchorState = AppAnchorState.NONE;
-        snackbarHelper.hide(this);
+        loadingMessageSnackbar.dismiss();
+        loadingMessageSnackbar = null;
     }
 }
