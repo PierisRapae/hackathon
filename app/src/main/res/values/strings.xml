@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
    Copyright 2018 Google Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,24 +14,24 @@
    limitations under the License.
 -->
 <resources>
-  <!-- Strings in the main activity -->
-  <string name="app_name">Cloud Anchor Codelab</string>
+    <!-- Strings in the main activity -->
+    <string name="app_name">Cloud Anchor Codelab</string>
 
-  <!-- Strings used in Snackbar messages -->
-  <string name="snackbar_arcore_unavailable">Please install ARCore.</string>
-  <string name="snackbar_arcore_too_old">Please update ARCore.</string>
-  <string name="snackbar_arcore_sdk_too_old">Please update the app with a newer version of the ARCore SDK.</string>
-  <string name="snackbar_arcore_exception">This device does not support ARCore.</string>
-  <string name="snackbar_camera_unavailable">Camera unavailable. Please restart the app.</string>
-  <string name="snackbar_dismiss">Dismiss</string>
+    <string name="plane_finding">Searching for surfaces&#8230;</string>
 
-  <string name="ok">OK</string>
-  <string name="cancel">Cancel</string>
-  <string name="resolve_dialog_title">Resolve Anchor</string>
-  <string name="resolve_button_text">Resolve</string>
+    <!-- Strings used in Snackbar messages -->
+    <string name="snackbar_arcore_unavailable">Please install ARCore.</string>
+    <string name="snackbar_arcore_too_old">Please update ARCore.</string>
+    <string name="snackbar_arcore_sdk_too_old">Please update the app with a newer version of the ARCore SDK.</string>
+    <string name="snackbar_arcore_exception">This device does not support ARCore.</string>
+    <string name="snackbar_camera_unavailable">Camera unavailable. Please restart the app.</string>
+    <string name="snackbar_dismiss">Dismiss</string>
 
-  <!-- Strings used by UI components -->
-  <string name="clear_button_string">Clear</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="resolve_dialog_title">Resolve Anchor</string>
+    <string name="resolve_button_text">Resolve</string>
 
-  <string name="plane_finding">Searching for surfaces&#8230;</string>
+    <!-- Strings used by UI components -->
+    <string name="clear_button_string">Clear</string>
 </resources>
