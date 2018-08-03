@@ -16,7 +16,7 @@
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="#4F5664">
 
-    <!--<item-->
-        <!--android:id="@android:id/mask"-->
-        <!--android:drawable="#CC67C503" />-->
+    <item
+        android:id="@android:id/mask"
+        android:drawable="@color/ripple" />
 </ripple>

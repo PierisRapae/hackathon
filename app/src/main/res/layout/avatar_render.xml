@@ -5,6 +5,5 @@
     android:layout_weight="1"
     android:contentDescription="@string/app_name"
     android:gravity="center"
-    android:padding="6dp"
-    android:src="@drawable/nametag_gif"
+    android:src="@drawable/avatar_gif"
     android:textAlignment="center" />

@@ -35,4 +35,10 @@
 
     <!-- Strings used by UI components -->
     <string name="clear_button_string">Clear</string>
+
+
+    <color name="cnt_bg">#138CE6</color>
+    <color name="ripple">#919ad7</color>
+    <color name="bg_ent">#F2F2F4</color>
+
 </resources>

@@ -72,8 +72,6 @@ public class Main2Activity extends AppCompatActivity {
 
     private void initAR() {
         arSceneView = findViewById(R.id.ar_scene_view);
-
-
 //        CompletableFuture<ViewRenderable> sunStage =
 //                       ViewRenderable.builder().setView(this, R.layout.avatar_controls).build();
         CompletableFuture<ModelRenderable> marsStage =
@@ -162,7 +160,6 @@ public class Main2Activity extends AppCompatActivity {
         // Lastly request CAMERA permission which is required by ARCore.
         DemoUtils.requestCameraPermission(this, RC_PERMISSIONS);
     }
-
 
     @Override
     protected void onResume() {
@@ -292,7 +289,7 @@ public class Main2Activity extends AppCompatActivity {
         Node sunVisual = new Node();
         sunVisual.setParent(sun);
         sunVisual.setRenderable(sunRenderable);
-        sunVisual.setLocalScale(new Vector3(0.85f, 0.85f, 0.85f));
+        sunVisual.setLocalScale(new Vector3(0.35f, 0.35f, 0.35f));
         // avatar control panel
         Node solarControls = new Node();
         solarControls.setParent(sun);
@@ -300,44 +297,44 @@ public class Main2Activity extends AppCompatActivity {
         solarControls.setLocalPosition(new Vector3(0.0f, 0.55f, -0.10f));
 
         // control panel
-        View solarControlsView = solarControlsRenderable.getView();
-        SeekBar orbitSpeedBar = solarControlsView.findViewById(R.id.orbitSpeedBar);
-        orbitSpeedBar.setProgress((int) (solarSettings.getOrbitSpeedMultiplier() * 10.0f));
-        orbitSpeedBar.setOnSeekBarChangeListener(
-                new SeekBar.OnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        float ratio = (float) progress / (float) orbitSpeedBar.getMax();
-                        solarSettings.setOrbitSpeedMultiplier(ratio * 10.0f);
-                    }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-                    }
-                });
-
-        SeekBar rotationSpeedBar = solarControlsView.findViewById(R.id.rotationSpeedBar);
-        rotationSpeedBar.setProgress((int) (solarSettings.getRotationSpeedMultiplier() * 10.0f));
-        rotationSpeedBar.setOnSeekBarChangeListener(
-                new SeekBar.OnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        float ratio = (float) progress / (float) rotationSpeedBar.getMax();
-                        solarSettings.setRotationSpeedMultiplier(ratio * 10.0f);
-                    }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-                    }
-                });
+//        View solarControlsView = solarControlsRenderable.getView();
+//        SeekBar orbitSpeedBar = solarControlsView.findViewById(R.id.orbitSpeedBar);
+//        orbitSpeedBar.setProgress((int) (solarSettings.getOrbitSpeedMultiplier() * 10.0f));
+//        orbitSpeedBar.setOnSeekBarChangeListener(
+//                new SeekBar.OnSeekBarChangeListener() {
+//                    @Override
+//                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                        float ratio = (float) progress / (float) orbitSpeedBar.getMax();
+//                        solarSettings.setOrbitSpeedMultiplier(ratio * 10.0f);
+//                    }
+//
+//                    @Override
+//                    public void onStartTrackingTouch(SeekBar seekBar) {
+//                    }
+//
+//                    @Override
+//                    public void onStopTrackingTouch(SeekBar seekBar) {
+//                    }
+//                });
+//
+//        SeekBar rotationSpeedBar = solarControlsView.findViewById(R.id.rotationSpeedBar);
+//        rotationSpeedBar.setProgress((int) (solarSettings.getRotationSpeedMultiplier() * 10.0f));
+//        rotationSpeedBar.setOnSeekBarChangeListener(
+//                new SeekBar.OnSeekBarChangeListener() {
+//                    @Override
+//                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                        float ratio = (float) progress / (float) rotationSpeedBar.getMax();
+//                        solarSettings.setRotationSpeedMultiplier(ratio * 10.0f);
+//                    }
+//
+//                    @Override
+//                    public void onStartTrackingTouch(SeekBar seekBar) {
+//                    }
+//
+//                    @Override
+//                    public void onStopTrackingTouch(SeekBar seekBar) {
+//                    }
+//                });
 
         // Toggle the solar controls on and off by tapping the sun.
         sunVisual.setOnTapListener(
