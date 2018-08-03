@@ -23,7 +23,7 @@ public class EntranceActivity extends AppCompatActivity {
         view.findViewById(R.id.next).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(EntranceActivity.this, Main2Activity.class);
+                Intent intent = new Intent(EntranceActivity.this, MainActivity3.class);
                 startActivity(intent);
                 finish();
             }
