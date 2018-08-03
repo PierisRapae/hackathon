@@ -34,17 +34,14 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false"
         tools:ignore="GoogleAppIndexingWarning">
-
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"
             android:label="@string/app_name"
             android:screenOrientation="locked"
-            android:theme="@style/Theme.AppCompat.NoActionBar"/>
-
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity android:name=".Main2Activity" />
-
         <activity
             android:name=".EntranceActivity"
             android:configChanges="orientation|screenSize"
@@ -72,6 +69,7 @@
             android:name="com.google.android.ar.API_KEY"
             android:value="AIzaSyA2gux5o1ViTMObf9eUvRSYquABEapDqh8" />
 
+        <activity android:name=".MainActivity3"></activity>
     </application>
 
 </manifest>
