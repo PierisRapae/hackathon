@@ -88,11 +88,11 @@ public class MainActivity3 extends AppCompatActivity {
 
         Pair<Float, Float> pair1= new Pair<>(18f, 0f);
         Pair<Float, Float> pair2= new Pair<>(0f, -18f);
-        road_map.put("sheny", pair1);
-        road_map.put("bomi", pair2);
+        road_map.put("sheny".toUpperCase(), pair1);
+        road_map.put("bomi".toUpperCase(), pair2);
 
         String username = getIntent().getStringExtra(EXTRA_USERNAME);
-        selectedPair = road_map.get(username);
+        selectedPair = road_map.get(username.toUpperCase());
         if (selectedPair == null) {
             selectedPair = pair1;
         }
