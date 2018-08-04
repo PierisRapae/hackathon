@@ -42,9 +42,10 @@ import uk.co.appoly.arcorelocation.rendering.LocationNode;
 import uk.co.appoly.arcorelocation.rendering.LocationNodeRender;
 import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
 
-import static com.google.ar.core.codelab.cloudanchor.R.layout;
 
 public class MainActivity3 extends AppCompatActivity {
+    public static final String EXTRA_USERNAME = "extra_username";
+
     private static final int RC_PERMISSIONS = 0x123;
     private boolean installRequested;
 
@@ -59,8 +60,7 @@ public class MainActivity3 extends AppCompatActivity {
     // avatar render
     private ViewRenderable sunRenderable;
     private ViewRenderable solarControlsRenderable;
-    Pair<Float, Float> pair1= new Pair<>(18f, 0f);
-    Pair<Float, Float> pair2= new Pair<>(0f, -18f);
+
     private HashMap<String, Pair<Float, Float>> road_map =  new HashMap<String, Pair<Float, Float>>();
     private final RotateSettings solarSettings = new RotateSettings();
     // True once scene is loaded
@@ -79,12 +79,24 @@ public class MainActivity3 extends AppCompatActivity {
     private volatile double testLatitude = 1.30006;
     private volatile double testLongitude = 103.78840;
 
+    private Pair<Float, Float> selectedPair;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity3);
+
+        Pair<Float, Float> pair1= new Pair<>(18f, 0f);
+        Pair<Float, Float> pair2= new Pair<>(0f, -18f);
         road_map.put("sheny", pair1);
         road_map.put("bomi", pair2);
+
+        String username = getIntent().getStringExtra(EXTRA_USERNAME);
+        selectedPair = road_map.get(username);
+        if (selectedPair == null) {
+            selectedPair = pair1;
+        }
+
         initAR();
     }
 
@@ -246,8 +258,8 @@ public class MainActivity3 extends AppCompatActivity {
 
                             if (locationScene != null) {
 //                                locationScene.setAnchorRefreshInterval(1000 * 60);
-                                float translateX = road_map.get("sheny").first;
-                                float translateY = road_map.get("sheny").second;
+                                float translateX = selectedPair.first;
+                                float translateY = selectedPair.second;
                                 locationScene.processFrame(translateX, translateY, frame);
                             }
 
