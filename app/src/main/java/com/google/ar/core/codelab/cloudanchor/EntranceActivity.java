@@ -40,6 +40,7 @@ public class EntranceActivity extends AppCompatActivity {
 
     public void onClick() {
         Intent intent = new Intent(EntranceActivity.this, SearchByNameActivity.class);
+        Intent intent = new Intent(EntranceActivity.this, FirstGateActivity.class);
         startActivity(intent);
 
         finish();
