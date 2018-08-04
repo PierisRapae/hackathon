@@ -21,7 +21,7 @@
             android:background="@android:color/white"
             android:textColor="@android:color/black"
             android:gravity="center"
-            android:hint="Alex Chen" />
+            android:hint="Name or Place" />
 
         <Button
             android:id="@+id/btn_find"
