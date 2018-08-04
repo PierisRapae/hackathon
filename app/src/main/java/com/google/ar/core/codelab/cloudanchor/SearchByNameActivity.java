@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import static com.google.ar.core.codelab.cloudanchor.MainActivity3.EXTRA_USERNAME;
 
@@ -22,9 +21,9 @@ public class SearchByNameActivity extends AppCompatActivity {
         findViewById(R.id.btn_find).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username = tvUsername.getText().toString();
+                String username = String.valueOf(tvUsername.getText());
 
-                Intent intent = new Intent(SearchByNameActivity.this, MainActivity3.class);
+                Intent intent = new Intent(SearchByNameActivity.this, Navigation1Activity.class);
                 intent.putExtra(EXTRA_USERNAME, username);
                 startActivity(intent);
             }
