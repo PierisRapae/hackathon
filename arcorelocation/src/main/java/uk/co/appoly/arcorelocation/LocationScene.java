@@ -55,6 +55,9 @@ public class LocationScene {
     private boolean debugEnabled = false;
     private Session mSession;
     private DeviceLocationChanged locationChangedEvent;
+    private Pose cameraPose;
+
+
     public LocationScene(Context mContext, Activity mActivity, ArSceneView mArSceneView) {
         Log.i(TAG, "Location Scene initiated.");
         this.mContext = mContext;
@@ -272,9 +275,11 @@ public class LocationScene {
                     }
 
                     // Don't immediately assign newly created anchor in-case of exceptions
+                    if (cameraPose == null) {
+                        cameraPose = frame.getCamera().getPose();
+                    }
                     Anchor newAnchor = mSession.createAnchor(
-                            frame.getCamera().getPose()
-                                    .compose(Pose.makeTranslation(xRotated, y + (float) heightAdjustment, zRotated)));
+                                    cameraPose.compose(Pose.makeTranslation(xRotated, 0, zRotated)));
 
 
                     mLocationMarkers.get(i).anchorNode = new LocationNode(newAnchor, mLocationMarkers.get(i), this);
