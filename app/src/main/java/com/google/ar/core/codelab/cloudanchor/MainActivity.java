@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             if (locationScene != null) {
-                                locationScene.processFrame(frame);
+//                                locationScene.processFrame(frame);
                             }
 
                             if (loadingMessageSnackbar != null) {

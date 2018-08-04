@@ -2,6 +2,7 @@ package uk.co.appoly.arcorelocation;
 
 import android.app.Activity;
 import android.content.Context;
+import android.location.Location;
 import android.os.Handler;
 import android.util.Log;
 
@@ -180,8 +181,8 @@ public class LocationScene {
         this.offsetOverlapping = offsetOverlapping;
     }
 
-    public void processFrame(Frame frame) {
-        refreshAnchorsIfRequired(frame);
+    public void processFrame(float transx, float transy, Frame frame) {
+        refreshAnchorsIfRequired(transx, transy, frame);
     }
 
     /**
@@ -191,14 +192,20 @@ public class LocationScene {
         anchorsNeedRefresh = true;
     }
 
-    private void refreshAnchorsIfRequired(Frame frame) {
+    private void refreshAnchorsIfRequired(float transx, float transy, Frame frame) {
         if (anchorsNeedRefresh) {
             Log.i(TAG, "Refreshing anchors...");
             anchorsNeedRefresh = false;
 
-            if (deviceLocation == null || deviceLocation.currentBestLocation == null) {
-                Log.i(TAG, "Location not yet established.");
-                return;
+//            if (deviceLocation == null || deviceLocation.currentBestLocation == null) {
+//                Log.i(TAG, "Location not yet established.");
+//                return;
+//            }
+            if (deviceLocation != null) {
+                Location location = new Location("server");
+                location.setLatitude(1.30001);
+                location.setLongitude(103.788536);
+                deviceLocation.currentBestLocation = location;
             }
 
 
@@ -266,6 +273,16 @@ public class LocationScene {
                     // Current camera height
                     float y = frame.getCamera().getDisplayOrientedPose().ty();
 
+                    // Don't immediately assign newly created anchor in-case of exceptions
+                    Log.i("CameraPose", frame.getCamera().getPose().toString());
+                    Pose translationPose = Pose.makeTranslation(transx, 0, transy);
+                    // Don't immediately assign newly created anchor in-case of exceptions
+                    if (cameraPose == null) {
+                        cameraPose = frame.getCamera().getPose();
+                    }
+                    Anchor newAnchor = mSession.createAnchor(cameraPose.compose(translationPose));
+
+
                     if (mLocationMarkers.get(i).anchorNode != null &&
                             mLocationMarkers.get(i).anchorNode.getAnchor() != null) {
                         mLocationMarkers.get(i).anchorNode.getAnchor().detach();
@@ -273,14 +290,6 @@ public class LocationScene {
                         mLocationMarkers.get(i).anchorNode.setEnabled(false);
                         mLocationMarkers.get(i).anchorNode = null;
                     }
-
-                    // Don't immediately assign newly created anchor in-case of exceptions
-                    if (cameraPose == null) {
-                        cameraPose = frame.getCamera().getPose();
-                    }
-                    Anchor newAnchor = mSession.createAnchor(
-                                    cameraPose.compose(Pose.makeTranslation(xRotated, 0, zRotated)));
-
 
                     mLocationMarkers.get(i).anchorNode = new LocationNode(newAnchor, mLocationMarkers.get(i), this);
                     mLocationMarkers.get(i).anchorNode.setParent(mArSceneView.getScene());

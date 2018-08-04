@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.google.ar.core.codelab.cloudanchor.MainActivity">
+    tools:context="com.google.ar.core.codelab.cloudanchor.MainActivity3">
 
     <com.google.ar.sceneform.ArSceneView
         android:id="@+id/ar_scene_view"
