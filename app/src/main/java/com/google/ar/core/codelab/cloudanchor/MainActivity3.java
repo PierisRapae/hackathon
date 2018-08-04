@@ -11,6 +11,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,10 +59,14 @@ public class MainActivity3 extends AppCompatActivity {
     private ModelRenderable marsRenderable;
 
     // avatar render
+    private ViewRenderable selfRenderable;
+    private ViewRenderable selfControlsRenderable;
+
+    // avatar render
     private ViewRenderable sunRenderable;
     private ViewRenderable solarControlsRenderable;
 
-    private HashMap<String, Pair<Float, Float>> road_map =  new HashMap<String, Pair<Float, Float>>();
+    private HashMap<String, Pair<Float, Float>> road_map = new HashMap<String, Pair<Float, Float>>();
     private final RotateSettings solarSettings = new RotateSettings();
     // True once scene is loaded
     private boolean hasFinishedLoading = false;
@@ -86,18 +91,26 @@ public class MainActivity3 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity3);
 
-        Pair<Float, Float> pair1= new Pair<>(18f, 0f);
-        Pair<Float, Float> pair2= new Pair<>(0f, -18f);
+        Pair<Float, Float> pair1 = new Pair<>(18f, 0f);
+        Pair<Float, Float> pair2 = new Pair<>(0f, -18f);
         road_map.put("sheny".toUpperCase(), pair1);
         road_map.put("bomi".toUpperCase(), pair2);
 
         String username = getIntent().getStringExtra(EXTRA_USERNAME);
         selectedPair = road_map.get(username.toUpperCase());
         if (selectedPair == null) {
-            selectedPair = pair1;
+            selectedPair = pair2;
         }
 
         initAR();
+
+        ImageView iw = findViewById(R.id.ar_home_button);
+        iw.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     private void initAR() {
@@ -115,6 +128,12 @@ public class MainActivity3 extends AppCompatActivity {
                 ViewRenderable.builder().setView(this, R.layout.avatar_controls).build();
 
 
+        CompletableFuture<ViewRenderable> selfStage =
+                ViewRenderable.builder().setView(this, R.layout.self_render).build();
+
+        CompletableFuture<ViewRenderable> selfControlsStage =
+                ViewRenderable.builder().setView(this, R.layout.self_controls).build();
+
         CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
                 .setSource(this, R.raw.andy)
                 .build();
@@ -127,6 +146,8 @@ public class MainActivity3 extends AppCompatActivity {
                 exampleLayout,
                 sunStage,
                 marsStage,
+                selfStage,
+                selfControlsStage,
                 solarControlsStage)
                 .handle(
                         (notUsed, throwable) -> {
@@ -138,6 +159,9 @@ public class MainActivity3 extends AppCompatActivity {
                                 marsRenderable = marsStage.get();
                                 sunRenderable = sunStage.get();
                                 solarControlsRenderable = solarControlsStage.get();
+
+                                selfRenderable = selfStage.get();
+                                selfControlsRenderable = selfControlsStage.get();
 
                                 exampleLayoutRenderable = exampleLayout.get();
                                 andyRenderable = andy.get();
@@ -218,36 +242,20 @@ public class MainActivity3 extends AppCompatActivity {
                                 // We know that here, the AR components have been initiated.
                                 locationScene = new LocationScene(this, this, arSceneView);
 
-                                // Now lets create our location markers.
-                                // First, a layout
-                                LocationMarker layoutLocationMarker = new LocationMarker(
-                                        testLongitude,
-                                        testLatitude,
-//                                        getExampleView()
-                                        createSolarSystem()
-                                );
-
-                                // An example "onRender" event, called every frame
-                                // Updates the layout with the markers distance
-                                layoutLocationMarker.setRenderEvent(new LocationNodeRender() {
+                                LocationMarker lm = new LocationMarker(
+                                        103.78823,
+                                        1.2996,
+                                        createSolarSystem());
+                                lm.setRenderEvent(new LocationNodeRender() {
                                     @Override
                                     public void render(LocationNode node) {
-//                                        View eView = exampleLayoutRenderable.getView();
-//                                        TextView distanceTextView = eView.findViewById(R.id.textView2);
-//                                        distanceTextView.setText(node.getDistance() + "M");
-
-
+                                        int distance = node.getDistance();
+                                        View view = solarControlsRenderable.getView();
+                                        TextView tx = view.findViewById(R.id.distance_txt);
+                                        tx.setText("Distance: " + distance + "M");
                                     }
                                 });
-                                // Adding the marker
-                                locationScene.mLocationMarkers.add(layoutLocationMarker);
-
-                                // Adding a simple location marker of a 3D model
-                                locationScene.mLocationMarkers.add(
-                                        new LocationMarker(
-                                                103.78823,
-                                                1.2996,
-                                                getExampleView()));
+                                locationScene.mLocationMarkers.add(lm);
                             }
 
                             Frame frame = arSceneView.getArFrame();
@@ -400,20 +408,60 @@ public class MainActivity3 extends AppCompatActivity {
         if (tap != null && frame.getCamera().getTrackingState() == TrackingState.TRACKING) {
             for (HitResult hit : frame.hitTest(tap)) {
                 Trackable trackable = hit.getTrackable();
-                if (trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose())) {
-                    // Create the Anchor.
-                    Anchor anchor = hit.createAnchor();
-                    AnchorNode anchorNode = new AnchorNode(anchor);
-                    anchorNode.setParent(arSceneView.getScene());
-                    Node solarSystem = createSolarSystem();
-                    anchorNode.addChild(solarSystem);
-                    return true;
-                }
+//                if (trackable instanceof Plane && ((Plane) trackable).isPoseInPolygon(hit.getHitPose())) {
+                // Create the Anchor.
+                Anchor anchor = hit.createAnchor();
+                AnchorNode anchorNode = new AnchorNode(anchor);
+                anchorNode.setParent(arSceneView.getScene());
+                Node solarSystem = createSelfSystem();
+                anchorNode.addChild(solarSystem);
+                return true;
+//                }
             }
         }
 
         return false;
     }
+
+
+    private Node createSelfSystem() {
+        Node base = new Node();
+
+        Node sun = new Node();
+        sun.setParent(base);
+        sun.setLocalPosition(new Vector3(0.0f, 0.5f, 0.0f));
+
+        // avatar
+        Node sunVisual = new Node();
+        sunVisual.setParent(sun);
+        sunVisual.setRenderable(selfRenderable);
+        sunVisual.setLocalScale(new Vector3(0.35f, 0.35f, 0.35f));
+        // avatar control panel
+        Node solarControls = new Node();
+        solarControls.setParent(sun);
+        solarControls.setRenderable(selfControlsRenderable);
+        solarControls.setLocalPosition(new Vector3(0.0f, 0.60f, 0.10f));
+
+        // control panel
+        View solarControlsView = selfControlsRenderable.getView();
+
+        View asking = solarControlsView.findViewById(R.id.askings);
+        asking.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
+
+        View msgs = solarControlsView.findViewById(R.id.msgs);
+        msgs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
+
+        return base;
+    }
+
 
     private Node createSolarSystem() {
         Node base = new Node();
@@ -431,7 +479,7 @@ public class MainActivity3 extends AppCompatActivity {
         Node solarControls = new Node();
         solarControls.setParent(sun);
         solarControls.setRenderable(solarControlsRenderable);
-        solarControls.setLocalPosition(new Vector3(0.0f, 0.55f, 0.10f));
+        solarControls.setLocalPosition(new Vector3(0.0f, 0.60f, 0.10f));
 
         // control panel
         View solarControlsView = solarControlsRenderable.getView();

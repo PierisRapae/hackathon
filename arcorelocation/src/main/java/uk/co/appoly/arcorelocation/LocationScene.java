@@ -275,7 +275,7 @@ public class LocationScene {
 
                     // Don't immediately assign newly created anchor in-case of exceptions
                     Log.i("CameraPose", frame.getCamera().getPose().toString());
-                    Pose translationPose = Pose.makeTranslation(transx, 0, transy);
+                    Pose translationPose = Pose.makeTranslation(transx, -1.3f, transy);
                     // Don't immediately assign newly created anchor in-case of exceptions
                     if (cameraPose == null) {
                         cameraPose = frame.getCamera().getPose();
