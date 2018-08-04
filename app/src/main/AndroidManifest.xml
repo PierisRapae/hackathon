@@ -62,6 +62,13 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".FirstGateActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:screenOrientation="locked"
+            android:theme="@style/Theme.AppCompat.NoActionBar" ></activity>
+
         <!--
              This tag indicates that this application requires ARCore.  This results in the Google Play
              Store downloading and installing ARCore along with the application.
@@ -78,6 +85,10 @@
         <activity android:name=".MainActivity" />
         <activity
             android:name=".SearchByNameActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:screenOrientation="locked"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity android:name=".Navigation1Activity" android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
     </application>

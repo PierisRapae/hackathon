@@ -7,23 +7,29 @@ import android.view.View;
 
 import static com.google.ar.core.codelab.cloudanchor.MainActivity3.EXTRA_USERNAME;
 
-public class Navigation1Activity extends AppCompatActivity {
+public class FirstGateActivity extends AppCompatActivity {
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_seat_show);
+        setContentView(R.layout.activity_first_gate);
 
-        findViewById(R.id.nav1_root).setOnClickListener(new View.OnClickListener() {
+        String name = getIntent().getStringExtra(EXTRA_USERNAME);
+
+        View button = findViewById(R.id.ar_button);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username = getIntent().getStringExtra(EXTRA_USERNAME);
-                Intent intent = new Intent(Navigation1Activity.this, FirstGateActivity.class);
-                intent.putExtra(EXTRA_USERNAME, username);
-                startActivity(intent);
+                Intent intent = new Intent(FirstGateActivity.this, MainActivity3.class);
+                intent.putExtra(EXTRA_USERNAME, name);
 
+                startActivity(intent);
                 finish();
             }
         });
+
     }
+
+
 }
