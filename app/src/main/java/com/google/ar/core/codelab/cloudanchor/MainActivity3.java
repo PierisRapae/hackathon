@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,6 +32,7 @@ import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -57,8 +59,9 @@ public class MainActivity3 extends AppCompatActivity {
     // avatar render
     private ViewRenderable sunRenderable;
     private ViewRenderable solarControlsRenderable;
-
-
+    Pair<Float, Float> pair1= new Pair<>(18f, 0f);
+    Pair<Float, Float> pair2= new Pair<>(0f, -18f);
+    private HashMap<String, Pair<Float, Float>> road_map =  new HashMap<String, Pair<Float, Float>>();
     private final RotateSettings solarSettings = new RotateSettings();
     // True once scene is loaded
     private boolean hasFinishedLoading = false;
@@ -74,13 +77,14 @@ public class MainActivity3 extends AppCompatActivity {
     private ModelRenderable andyRenderable;
     private ViewRenderable exampleLayoutRenderable;
     private volatile double testLatitude = 1.30006;
-    private volatile double testLongitude = 103.78837;
+    private volatile double testLongitude = 103.78840;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity3);
-
+        road_map.put("sheny", pair1);
+        road_map.put("bomi", pair2);
         initAR();
     }
 
@@ -242,7 +246,10 @@ public class MainActivity3 extends AppCompatActivity {
                             }
 
                             if (locationScene != null) {
-                                locationScene.processFrame(frame);
+//                                locationScene.setAnchorRefreshInterval(1000 * 60);
+                                float translateX = road_map.get("sheny").first;
+                                float translateY = road_map.get("sheny").second;
+                                locationScene.processFrame(translateX, translateY, frame);
                             }
 
                             if (loadingMessageSnackbar != null) {
