@@ -10,10 +10,5 @@
         android:layout_height="match_parent"
         android:layout_gravity="top"/>
 
-    <Button
-        android:id="@+id/update_coordinate"
-        android:text="Update Coordinates"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
 </FrameLayout>

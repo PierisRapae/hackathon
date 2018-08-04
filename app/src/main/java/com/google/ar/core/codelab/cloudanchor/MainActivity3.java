@@ -265,14 +265,14 @@ public class MainActivity3 extends AppCompatActivity {
         ARLocationPermissionHelper.requestPermission(this);
 
 
-        findViewById(R.id.update_coordinate).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AddCoordinatesDialogFragment dialog = new AddCoordinatesDialogFragment();
-                dialog.setOkListener(MainActivity3.this::onResolveOkPressed);
-                dialog.show(getSupportFragmentManager(), "Resolve");
-            }
-        });
+//        findViewById(R.id.update_coordinate).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                AddCoordinatesDialogFragment dialog = new AddCoordinatesDialogFragment();
+//                dialog.setOkListener(MainActivity3.this::onResolveOkPressed);
+//                dialog.show(getSupportFragmentManager(), "Resolve");
+//            }
+//        });
     }
 
     @Override
@@ -503,17 +503,17 @@ public class MainActivity3 extends AppCompatActivity {
     }
 
     private void showLoadingMessage() {
-        if (loadingMessageSnackbar != null && loadingMessageSnackbar.isShownOrQueued()) {
-            return;
-        }
-
-        loadingMessageSnackbar =
-                Snackbar.make(
-                        MainActivity3.this.findViewById(android.R.id.content),
-                        R.string.plane_finding,
-                        Snackbar.LENGTH_INDEFINITE);
-        loadingMessageSnackbar.getView().setBackgroundColor(0xbf323232);
-        loadingMessageSnackbar.show();
+//        if (loadingMessageSnackbar != null && loadingMessageSnackbar.isShownOrQueued()) {
+//            return;
+//        }
+//
+//        loadingMessageSnackbar =
+//                Snackbar.make(
+//                        MainActivity3.this.findViewById(android.R.id.content),
+//                        R.string.plane_finding,
+//                        Snackbar.LENGTH_INDEFINITE);
+//        loadingMessageSnackbar.getView().setBackgroundColor(0xbf323232);
+//        loadingMessageSnackbar.show();
     }
 
     private void hideLoadingMessage() {
