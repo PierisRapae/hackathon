@@ -188,7 +188,6 @@ public class MainActivity3 extends AppCompatActivity {
         // Lastly request CAMERA permission which is required by ARCore.
         DemoUtils.requestCameraPermission(this, RC_PERMISSIONS);
 
-
         // Set an update listener on the Scene that will hide the loading message once a Plane is detected.
         arSceneView
                 .getScene()
