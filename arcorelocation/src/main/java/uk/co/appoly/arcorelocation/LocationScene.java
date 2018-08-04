@@ -189,6 +189,12 @@ public class LocationScene {
         anchorsNeedRefresh = true;
     }
 
+    private float translationX = 18;
+    private float translationY = 0;
+    private float translationZ = 0;
+
+    private Pose cameraPose;
+
     private void refreshAnchorsIfRequired(Frame frame) {
         if (anchorsNeedRefresh) {
             Log.i(TAG, "Refreshing anchors...");
@@ -271,10 +277,17 @@ public class LocationScene {
                     float y = frame.getCamera().getDisplayOrientedPose().ty();
 
                     // Don't immediately assign newly created anchor in-case of exceptions
-                    Pose translationPose = Pose.makeTranslation(18, 0, 0);
-                    Anchor newAnchor = mSession.createAnchor(
-                            frame.getCamera().getPose()
-                                    .compose(translationPose));
+                    Log.i("CameraPose", frame.getCamera().getPose().toString());
+                    Pose translationPose = Pose.makeTranslation(translationX, translationY, translationZ);
+//                    translationX = ++translationX % 50;
+//                    translationY = ++translationY % 50;
+//                    translationZ = ++translationZ % 50;
+                    Log.i("CameraPose", "x: " + translationX + " y: " + translationY + " z: " + translationZ);
+                    if (cameraPose == null) {
+                        cameraPose = frame.getCamera().getPose();
+                    }
+                    Anchor newAnchor = mSession.createAnchor(cameraPose.compose(translationPose));
+
 
                     if (mLocationMarkers.get(i).anchorNode != null &&
                             mLocationMarkers.get(i).anchorNode.getAnchor() != null) {

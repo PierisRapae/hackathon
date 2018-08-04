@@ -74,7 +74,7 @@ public class MainActivity3 extends AppCompatActivity {
     private ModelRenderable andyRenderable;
     private ViewRenderable exampleLayoutRenderable;
     private volatile double testLatitude = 1.30006;
-    private volatile double testLongitude = 103.78837;
+    private volatile double testLongitude = 103.78840;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
