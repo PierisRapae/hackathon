@@ -1,0 +1,21 @@
+package com.google.ar.core.codelab.cloudanchor;
+
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+
+public class FirstGateActivity extends AppCompatActivity {
+
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_first_gate);
+
+
+
+
+    }
+
+
+}

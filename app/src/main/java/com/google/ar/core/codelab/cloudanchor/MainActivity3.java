@@ -223,7 +223,8 @@ public class MainActivity3 extends AppCompatActivity {
                                 LocationMarker layoutLocationMarker = new LocationMarker(
                                         testLongitude,
                                         testLatitude,
-                                        getExampleView()
+//                                        getExampleView()
+                                        createSolarSystem()
                                 );
 
                                 // An example "onRender" event, called every frame
@@ -231,9 +232,11 @@ public class MainActivity3 extends AppCompatActivity {
                                 layoutLocationMarker.setRenderEvent(new LocationNodeRender() {
                                     @Override
                                     public void render(LocationNode node) {
-                                        View eView = exampleLayoutRenderable.getView();
-                                        TextView distanceTextView = eView.findViewById(R.id.textView2);
-                                        distanceTextView.setText(node.getDistance() + "M");
+//                                        View eView = exampleLayoutRenderable.getView();
+//                                        TextView distanceTextView = eView.findViewById(R.id.textView2);
+//                                        distanceTextView.setText(node.getDistance() + "M");
+
+
                                     }
                                 });
                                 // Adding the marker
@@ -244,7 +247,7 @@ public class MainActivity3 extends AppCompatActivity {
                                         new LocationMarker(
                                                 103.78823,
                                                 1.2996,
-                                                getAndy()));
+                                                getExampleView()));
                             }
 
                             Frame frame = arSceneView.getArFrame();
