@@ -21,8 +21,6 @@ public class Navigation1Activity extends AppCompatActivity {
                 Intent intent = new Intent(Navigation1Activity.this, FirstGateActivity.class);
                 intent.putExtra(EXTRA_USERNAME, username);
                 startActivity(intent);
-
-                finish();
             }
         });
     }

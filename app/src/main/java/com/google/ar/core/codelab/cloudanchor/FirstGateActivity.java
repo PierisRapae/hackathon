@@ -25,7 +25,6 @@ public class FirstGateActivity extends AppCompatActivity {
                 intent.putExtra(EXTRA_USERNAME, name);
 
                 startActivity(intent);
-                finish();
             }
         });
 

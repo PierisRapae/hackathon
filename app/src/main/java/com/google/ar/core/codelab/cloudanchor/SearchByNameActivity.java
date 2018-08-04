@@ -26,7 +26,6 @@ public class SearchByNameActivity extends AppCompatActivity {
                 Intent intent = new Intent(SearchByNameActivity.this, Navigation1Activity.class);
                 intent.putExtra(EXTRA_USERNAME, username);
                 startActivity(intent);
-                finish();
             }
         });
     }

@@ -31,8 +31,9 @@
 
     <ImageView
         android:id="@+id/ar_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="95dp"
+        android:layout_height="95dp"
+        android:scaleType="fitXY"
         android:layout_alignParentBottom="true"
         android:background="?attr/selectableItemBackground"
         android:layout_centerHorizontal="true"
