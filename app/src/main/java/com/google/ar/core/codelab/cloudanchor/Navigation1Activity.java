@@ -18,7 +18,7 @@ public class Navigation1Activity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String username = getIntent().getStringExtra(EXTRA_USERNAME);
-                Intent intent = new Intent(Navigation1Activity.this, MainActivity3.class);
+                Intent intent = new Intent(Navigation1Activity.this, FirstGateActivity.class);
                 intent.putExtra(EXTRA_USERNAME, username);
                 startActivity(intent);
 
